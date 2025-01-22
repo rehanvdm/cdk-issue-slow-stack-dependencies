@@ -1,20 +1,28 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import { CdkIssueSlowStackDependenciesStack } from '../lib/cdk-issue-slow-stack-dependencies-stack';
+import 'source-map-support/register';
+import {App,Stack,} from "aws-cdk-lib";
 
-const app = new cdk.App();
-new CdkIssueSlowStackDependenciesStack(app, 'CdkIssueSlowStackDependenciesStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
+const app = new App();
+const numberOfWaves = 9;
+const numberOfStacks = 10;
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+function createWaveStacks(app: App, waveNumber: number, numberOfStacks: number,
+                          previousWaveStacks: Stack[] = []): Stack[] {
+  const waveStacks: Stack[] = [];
+  for (let i = 0; i < numberOfStacks; i++) {
+    const stack = new Stack(app, `CdkWave${waveNumber}-${i}`);
+    waveStacks.push(stack);
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+    for (const previousStack of previousWaveStacks) {
+      stack.addDependency(previousStack);
+      console.log(`${new Date().toLocaleTimeString()} - Adding dependency from stack ${previousStack.node.id} to stack ${stack.node.id}`);
+    }
+  }
+  return waveStacks;
+}
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-});
+let previousWaveStacks: Stack[] = [];
+for (let waveNumber = 1; waveNumber <= numberOfWaves; waveNumber++) {
+  previousWaveStacks = createWaveStacks(app, waveNumber, numberOfStacks, previousWaveStacks);
+}
+app.synth();
