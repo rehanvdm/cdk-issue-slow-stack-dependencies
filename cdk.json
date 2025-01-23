@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/cdk-issue-slow-stack-dependencies.ts",
+  "app": "NODE_OPTIONS=--max_old_space_size=4096 npx ts-node --prefer-ts-exts bin/cdk-issue-slow-stack-dependencies.ts",
   "watch": {
     "include": [
       "**"
